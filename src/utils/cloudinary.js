@@ -30,6 +30,9 @@
 
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { ApiError } from "./ApiError";
+import {extractPublicId} from "cloudinary-build-url"
+import { response } from "express";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -65,4 +68,24 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-export { uploadOnCloudinary };
+const deleteOnCloudinary = async(image) => {
+    try{
+        if(!image){
+            throw new ApiError(404, "Image Invalid")
+        }
+
+        const publicId = extractPublicId(image)
+
+        const response = await cloudinary.uploader.destroy(publicId)
+        if(response.result != 'ok'){
+            throw new ApiError(400, "Old image deletion failed on cloudinary")
+        }
+
+        return 1;
+    }
+    catch(error){
+        return null;
+    }
+}
+
+export { uploadOnCloudinary, deleteOnCloudinary };
