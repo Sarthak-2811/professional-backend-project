@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { asyncHandler } from "../utils/asyncHandler";
-import ApiError from "../utils/ApiError";
-import { Tweet } from "../models/tweet.model";
-import { ApiResponse } from "../utils/ApiResponse";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+import { Tweet } from "../models/tweet.model.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { use } from "react";
 
 
