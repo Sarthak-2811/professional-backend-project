@@ -28,27 +28,59 @@ const createPlaylist = asyncHandler(async (req, res) =>{
     )
 })
 
-const getUserPlaylist = asyncHandler(async(req, res)=>{
-    const {userId} = req.params
+// const getUserPlaylist = asyncHandler(async(req, res)=>{
+//     const {userId} = req.params
 
-    if(!isValidObjectId(userId)){
+//     if(!isValidObjectId(userId)){
+//         throw new ApiError(400, "Invalid user access")
+//     }
+
+//     const playlist = await PlayList.find({owner: userId})
+//     .populate({
+//         path: "videos",
+//         select: "thumbnail"
+//     })
+
+//     if (!playlist.length) {
+//     throw new ApiError(404, "No playlists found for this user")
+// }
+
+//     return res
+//     .status(200)
+//     .json(
+//         new ApiResponse(200, playlist, "User playlist fetched successfully")
+//     )
+// })
+const getUserPlaylist = asyncHandler(async (req, res) => {
+    const { userId } = req.params
+
+    // Validate userId
+    if (!isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid user access")
     }
 
-    const playlist = await PlayList.find({owner: userId})
-    .populate({
-        path: "videos",
-        select: "thumbnail"
-    })
-
-    if(!playlist){
-        throw new ApiError(404, "Playlist not found")
+    // Ownership / self-access check
+    if (req.user._id.toString() !== userId) {
+        throw new ApiError(403, "You are not authorized to access these playlists")
     }
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, playlist, "User playlist fetched successfully")
+    const playlists = await PlayList.find({ owner: userId })
+        .populate({
+            path: "videos",
+            select: "thumbnail title duration"
+        })
+
+    // find() returns an array — check length, not null
+    if (!playlists.length) {
+        throw new ApiError(404, "No playlists found for this user")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            playlists,
+            "User playlists fetched successfully"
+        )
     )
 })
 
@@ -59,8 +91,11 @@ const getPlaylistById = asyncHandler(async (req, res)=> {
         throw new ApiError(400, "Invalid playlist Id")
     }
 
-    const playlist = await PlayList.findById(playlistId)
-    .populate("videos")
+    const playlist = await PlayList.findOne({
+        _id: playlistId,
+        owner: req.user._id
+    }).populate("videos")
+
 
     if(!playlist){
         throw new ApiError(404, "Playlist not found")
@@ -73,31 +108,68 @@ const getPlaylistById = asyncHandler(async (req, res)=> {
     )
 })
 
-const addVideoToPlaylist = asyncHandler(async (req, res)=>{
-    const {playlistId, videoId} = req.params
+// const addVideoToPlaylist = asyncHandler(async (req, res)=>{
+//     const {playlistId, videoId} = req.params
 
-    if(!isValidObjectId(playlistId) || !isValidObjectId(videoId)){
-        throw new ApiError(400, "Invalid Playlist-Id or User-Id")
+//     if(!isValidObjectId(playlistId) || !isValidObjectId(videoId)){
+//         throw new ApiError(400, "Invalid Playlist-Id or User-Id")
+//     }
+
+//     const playlist = await PlayList.findByIdAndUpdate(
+//         playlistId,
+//         {
+//             $addToSet: {videos: "videoId"}
+//         },
+//         {
+//             new: true
+//         }
+//     )
+
+//     if(!playlist){
+//         throw new ApiError(404, "Playlist not found")
+//     }
+
+//     return res
+//     .status(200)
+//     .json(
+//         new ApiResponse(200, playlist, "Video added to playlist successfully")
+//     )
+// })
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+    const { playlistId, videoId } = req.params
+
+    // Validate ObjectIds
+    if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid Playlist-Id or Video-Id")
     }
 
-    const playlist = await PlayList.findByIdAndUpdate(
-        playlistId,
+    // Add video only if the playlist belongs to the logged-in user
+    const playlist = await PlayList.findOneAndUpdate(
         {
-            $addToSet: {videos: "videoId"}
+            _id: playlistId,
+            owner: req.user._id
+        },
+        {
+            $addToSet: { videos: videoId } // prevents duplicates
         },
         {
             new: true
         }
     )
 
-    if(!playlist){
-        throw new ApiError(404, "Playlist not found")
+    if (!playlist) {
+        throw new ApiError(
+            404,
+            "Playlist not found or you are not authorized to modify it"
+        )
     }
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, playlist, "Video added to playlist successfully")
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            playlist,
+            "Video added to playlist successfully"
+        )
     )
 })
 
@@ -135,7 +207,7 @@ const deletePlaylist = asyncHandler(async (req, res)=>{
     const {playlistId} = req.params
 
     if(!isValidObjectId(playlistId)){
-        throw new ApiError(400, "Invlaid Playlist Id")
+        throw new ApiError(400, "Invalid Playlist Id")
     }
 
     const playlist = await PlayList.findOneAndDelete({
@@ -159,11 +231,11 @@ const updatePlaylist = asyncHandler(async (req, res)=>{
     const { name, description} = req.body
 
     if(!isValidObjectId(playlistId)){
-        throw new ApiError(400, "Invlaid Playlist ID")
+        throw new ApiError(400, "Invalid Playlist ID")
     }
 
     if(!name || !description){
-        throw new ApiError(404 ,"Name or Decription not found")
+        throw new ApiError(404 ,"Name or Description not found")
     }
 
     const playlist = await PlayList.findOneAndUpdate(

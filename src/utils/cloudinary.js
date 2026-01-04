@@ -1,38 +1,5 @@
-// import { v2 as cloudinary } from "cloudinary";
-// import fs from "fs"
-
-// cloudinary.config({ 
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-//     api_key: process.env.CLOUDINARY_API_KEY, 
-//     api_secret: process.env.CLOUDINARY_API_SECRET 
-// });
-
-
-
-// const uploadOnCloudinary = async (localFilePath) => {
-//     try{
-//         if(!localFilePath) return null;
-//         // upload the file on cloudinary
-//         const response = await cloudinary.uploader.upload(localFilePath, {
-//             resource_type: "auto"
-//         })
-//         // file has been uploaded successfully 
-//         console.log("file has been uploaded successfully", response.url)
-//         return response;
-//     }
-//     catch(error){
-//         fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed
-//         return null;
-//     }
-// }
-
-// export {uploadOnCloudinary}
-
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import { ApiError } from "./ApiError.js";
-// import {extractPublicId} from "cloudinary-build-url"
-import { response } from "express";
+import fs from "fs/promises";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -42,50 +9,161 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
     try {
-        if (!localFilePath) {
-            // console.log("❌ No file path found");
-            return null;
-        }
+        if (!localFilePath) return null;
 
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto"
         });
 
-        // console.log("☁️ Cloudinary Upload Success:", response.url);
-
-        // DELETE FILE AFTER UPLOAD
-        fs.unlinkSync(localFilePath);
+        // ✅ SAFE async cleanup
+        await fs.unlink(localFilePath).catch(() => {});
 
         return response;
-
     } catch (error) {
-        // console.log("❌ Cloudinary upload error:", error.message);
-
-        // delete file even if upload fails
-        fs.unlinkSync(localFilePath);
-
+        // ✅ Cleanup even if upload fails
+        if (localFilePath) {
+            await fs.unlink(localFilePath).catch(() => {});
+        }
         return null;
     }
 };
 
-// const deleteOnCloudinary = async(image) => {
-//     try{
-//         if(!image){
-//             throw new ApiError(404, "Image Invalid")
+export { uploadOnCloudinary };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // import { v2 as cloudinary } from "cloudinary";
+// // import fs from "fs"
+
+// // cloudinary.config({ 
+// //     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+// //     api_key: process.env.CLOUDINARY_API_KEY, 
+// //     api_secret: process.env.CLOUDINARY_API_SECRET 
+// // });
+
+
+
+// // const uploadOnCloudinary = async (localFilePath) => {
+// //     try{
+// //         if(!localFilePath) return null;
+// //         // upload the file on cloudinary
+// //         const response = await cloudinary.uploader.upload(localFilePath, {
+// //             resource_type: "auto"
+// //         })
+// //         // file has been uploaded successfully 
+// //         console.log("file has been uploaded successfully", response.url)
+// //         return response;
+// //     }
+// //     catch(error){
+// //         fs.unlinkSync(localFilePath) // remove the locally saved temporary file as the upload operation got failed
+// //         return null;
+// //     }
+// // }
+
+// // export {uploadOnCloudinary}
+
+// import { v2 as cloudinary } from "cloudinary";
+// import fs from "fs";
+// import { ApiError } from "./ApiError.js";
+// // import {extractPublicId} from "cloudinary-build-url"
+// import { response } from "express";
+
+
+// //This was being used earlier
+// cloudinary.config({
+//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//     api_key: process.env.CLOUDINARY_API_KEY,
+//     api_secret: process.env.CLOUDINARY_API_SECRET
+// });
+
+// const uploadOnCloudinary = async (localFilePath) => {
+//     try {
+//         if (!localFilePath) {
+//             // console.log("❌ No file path found");
+//             return null;
 //         }
 
-//         const publicId = extractPublicId(image)
+//         const response = await cloudinary.uploader.upload(localFilePath, {
+//             resource_type: "auto"
+//         });
 
-//         const response = await cloudinary.uploader.destroy(publicId)
-//         if(response.result != 'ok'){
-//             throw new ApiError(400, "Old image deletion failed on cloudinary")
-//         }
+//         // console.log("☁️ Cloudinary Upload Success:", response.url);
 
-//         return 1;
-//     }
-//     catch(error){
+//         // DELETE FILE AFTER UPLOAD
+//         fs.unlinkSync(localFilePath);
+
+//         return response;
+
+//     } catch (error) {
+//         // console.log("❌ Cloudinary upload error:", error.message);
+
+//         // delete file even if upload fails
+//         fs.unlinkSync(localFilePath);
+
 //         return null;
 //     }
-// }
+// };
 
-export { uploadOnCloudinary, /*deleteOnCloudinary*/ };
+
+
+
+
+
+
+
+
+
+
+
+
+// // const deleteOnCloudinary = async(image) => {
+// //     try{
+// //         if(!image){
+// //             throw new ApiError(404, "Image Invalid")
+// //         }
+
+// //         const publicId = extractPublicId(image)
+
+// //         const response = await cloudinary.uploader.destroy(publicId)
+// //         if(response.result != 'ok'){
+// //             throw new ApiError(400, "Old image deletion failed on cloudinary")
+// //         }
+
+// //         return 1;
+// //     }
+// //     catch(error){
+// //         return null;
+// //     }
+// // }
+
+// export { uploadOnCloudinary, /*deleteOnCloudinary*/ };

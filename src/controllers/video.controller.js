@@ -557,13 +557,13 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
     // 4️⃣ Delete assets from Cloudinary
     // (Assuming you store Cloudinary public_id or can extract it)
-    if (video.videoFile) {
-        await deleteFromCloudinary(video.videoFile);
-    }
+    // if (video.videoFile) {
+    //     await deleteFromCloudinary(video.videoFile);
+    // }
 
-    if (video.thumbnail) {
-        await deleteFromCloudinary(video.thumbnail);
-    }
+    // if (video.thumbnail) {
+    //     await deleteFromCloudinary(video.thumbnail);
+    // }
 
     // 5️⃣ Delete video from DB
     const deletedVideo = await Video.findByIdAndDelete(videoId);
