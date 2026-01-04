@@ -30,8 +30,8 @@
 
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import { ApiError } from "./ApiError";
-import {extractPublicId} from "cloudinary-build-url"
+import { ApiError } from "./ApiError.js";
+// import {extractPublicId} from "cloudinary-build-url"
 import { response } from "express";
 
 cloudinary.config({
@@ -68,24 +68,24 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-const deleteOnCloudinary = async(image) => {
-    try{
-        if(!image){
-            throw new ApiError(404, "Image Invalid")
-        }
+// const deleteOnCloudinary = async(image) => {
+//     try{
+//         if(!image){
+//             throw new ApiError(404, "Image Invalid")
+//         }
 
-        const publicId = extractPublicId(image)
+//         const publicId = extractPublicId(image)
 
-        const response = await cloudinary.uploader.destroy(publicId)
-        if(response.result != 'ok'){
-            throw new ApiError(400, "Old image deletion failed on cloudinary")
-        }
+//         const response = await cloudinary.uploader.destroy(publicId)
+//         if(response.result != 'ok'){
+//             throw new ApiError(400, "Old image deletion failed on cloudinary")
+//         }
 
-        return 1;
-    }
-    catch(error){
-        return null;
-    }
-}
+//         return 1;
+//     }
+//     catch(error){
+//         return null;
+//     }
+// }
 
-export { uploadOnCloudinary, deleteOnCloudinary };
+export { uploadOnCloudinary, /*deleteOnCloudinary*/ };
