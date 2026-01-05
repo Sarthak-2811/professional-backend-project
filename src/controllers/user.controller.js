@@ -168,10 +168,16 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select(("-password -refreshToken"))
 
+    // const options = {
+    //     httpOnly: true,
+    //     secure: true
+    // }   // to make the cookie secure and cookie cannot be updated from frontend
+
     const options = {
-        httpOnly: true,
-        secure: true
-    }   // to make the cookie secure and cookie cannot be updated from frontend
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax"
+};
 
     return res
     .status(200)
@@ -203,10 +209,15 @@ const logoutUser = asyncHandler(async(req, res) => {
         }
     )
 
-        const options = {
-        httpOnly: true,
-        secure: true
-    }  
+    //     const options = {
+    //     httpOnly: true,
+    //     secure: true
+    // }  
+    const options = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax"
+};
 
     return res
     .status(200)
@@ -293,11 +304,16 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         const { accessToken, refreshToken } =
             await generateAccessAndRefreshToken(user._id)
 
+        // const options = {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "strict" // ✅ recommended
+        // }
         const options = {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict" // ✅ recommended
-        }
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax"
+};
 
         return res
             .status(200)
