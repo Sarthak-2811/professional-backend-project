@@ -173,10 +173,11 @@ const loginUser = asyncHandler(async (req, res) => {
     //     secure: true
     // }   // to make the cookie secure and cookie cannot be updated from frontend
 
-    const options = {
+const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "lax"
+  sameSite: "lax",
+  path: "/",               // 🔥 THIS IS REQUIRED
 };
 
     return res
@@ -184,14 +185,12 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-        new ApiResponse(
-            200,
-            {
-                user: loggedInUser, accessToken, refreshToken
-            },
-            "User logged In successfully"
-        )
-    )
+  new ApiResponse(
+    200,
+    { user: loggedInUser },
+    "User logged In successfully"
+  )
+)
 
 })
 
@@ -213,10 +212,11 @@ const logoutUser = asyncHandler(async(req, res) => {
     //     httpOnly: true,
     //     secure: true
     // }  
-    const options = {
+const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "lax"
+  sameSite: "lax",
+  path: "/",               // 🔥 THIS IS REQUIRED
 };
 
     return res
@@ -309,10 +309,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         //     secure: true,
         //     sameSite: "strict" // ✅ recommended
         // }
-        const options = {
+const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "lax"
+  sameSite: "lax",
+  path: "/",               // 🔥 THIS IS REQUIRED
 };
 
         return res
@@ -320,12 +321,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
             .json(
-                new ApiResponse(
-                    200,
-                    { accessToken, refreshToken },
-                    "Access token refreshed successfully"
-                )
-            )
+  new ApiResponse(
+    200,
+    {},
+    "Access token refreshed successfully"
+  )
+)
 
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refresh token")

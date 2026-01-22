@@ -134,6 +134,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 "channel._id": 1,
                 "channel.username": 1,
                 "channel.avatar": 1,
+                "channel.fullName": 1,
                 createdAt: 1,
                 updatedAt: 1
             }
@@ -391,27 +392,215 @@ const publishVideo = asyncHandler(async (req, res) => {
 });
 
 
+// const getVideoById = asyncHandler(async (req, res) => {
+//   const { videoId } = req.params;
+
+//   if (!isValidObjectId(videoId)) {
+//     throw new ApiError(400, "Invalid video id");
+//   }
+
+//   const video = await Video.findById(videoId)
+//     .populate("owner", "username avatar fullName");
+
+//   if (!video) {
+//     throw new ApiError(404, "Video not found");
+//   }
+
+//   /* ================= VIEW COUNT ================= */
+//   if (req.user?._id) {
+//     const userId = req.user._id.toString();
+
+//     // ✅ SAFE CHECK (NO CRASH)
+//     const viewedBy = Array.isArray(video.viewedBy) ? video.viewedBy : [];
+
+//     const alreadyViewed = viewedBy.some(
+//       (id) => id.toString() === userId
+//     );
+
+//     if (!alreadyViewed) {
+//       video.views += 1;
+
+//       // only push if field exists
+//       if (Array.isArray(video.viewedBy)) {
+//         video.viewedBy.push(req.user._id);
+//       }
+
+//       await video.save();
+//     }
+
+//     /* ================= WATCH HISTORY (FIX) ================= */
+//     await User.updateOne(
+//       { _id: req.user._id },
+//       { $pull: { watchHistory: video._id } }
+//     );
+
+//     await User.updateOne(
+//       { _id: req.user._id },
+//       {
+//         $push: {
+//           watchHistory: {
+//             $each: [video._id],
+//             $position: 0
+//           }
+//         }
+//       }
+//     );
+//   }
+
+//   /* ================= LIKES / SUBSCRIBE ================= */
+//   const Like = mongoose.model("Like");
+//   const Subscription = mongoose.model("Subscription");
+
+//   const likesCount = await Like.countDocuments({ video: videoId });
+
+//   const isLiked = req.user?._id
+//     ? await Like.exists({
+//         video: videoId,
+//         likedBy: req.user._id,
+//       })
+//     : false;
+
+//   const isSubscribed = req.user?._id
+//     ? await Subscription.exists({
+//         channel: video.owner._id,
+//         subscriber: req.user._id,
+//       })
+//     : false;
+
+//   return res.status(200).json(
+//     new ApiResponse(
+//       200,
+//       {
+//         _id: video._id,
+//         title: video.title,
+//         description: video.description,
+//         thumbnail: video.thumbnail,
+//         videoFile: video.videoFile,
+//         duration: video.duration,
+//         views: video.views,
+//         createdAt: video.createdAt,
+
+//         likesCount,
+//         isLiked,
+
+//         owner: {
+//           _id: video.owner._id,
+//           username: video.owner.username,
+//           avatar: video.owner.avatar,
+//           fullName: video.owner.fullName,
+//           isSubscribed,
+//         },
+//       },
+//       "Video fetched successfully"
+//     )
+//   );
+// });
+
 const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
 
-    const { videoId } = req.params
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video id");
+  }
 
-    if(!isValidObjectId(videoId)){
-        throw new ApiError(400, "Invalid user id")
+  const video = await Video.findById(videoId)
+    .populate("owner", "username avatar fullName");
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  /* ================= VIEW COUNT ================= */
+  if (req.user?._id) {
+    const userId = req.user._id.toString();
+
+    // ✅ SAFE CHECK (NO CRASH)
+    const viewedBy = Array.isArray(video.viewedBy) ? video.viewedBy : [];
+
+    const alreadyViewed = viewedBy.some(
+      (id) => id.toString() === userId
+    );
+
+    if (!alreadyViewed) {
+      video.views += 1;
+
+      // only push if field exists
+      if (Array.isArray(video.viewedBy)) {
+        video.viewedBy.push(req.user._id);
+      }
+
+      await video.save();
     }
 
-    // Find the user by Id and populate owner data 
-    const video = await Video.findById(videoId).populate("owner", "name email")
+    /* ================= WATCH HISTORY (FIX) ================= */
+    await User.updateOne(
+      { _id: req.user._id },
+      { $pull: { watchHistory: video._id } }
+    );
 
-    if(!video){
-        throw new ApiError(404, "Video not found")
-    }
+    await User.updateOne(
+      { _id: req.user._id },
+      {
+        $push: {
+          watchHistory: {
+            $each: [video._id],
+            $position: 0
+          }
+        }
+      }
+    );
+  }
 
-    return res
-    .status(200)
-    .json (
-        new ApiResponse(200, video, "Video fetched successfully")
+  /* ================= LIKES / SUBSCRIBE ================= */
+  const Like = mongoose.model("Like");
+  const Subscription = mongoose.model("Subscription");
+
+  const likesCount = await Like.countDocuments({ video: videoId });
+
+  const isLiked = req.user?._id
+    ? await Like.exists({
+        video: videoId,
+        likedBy: req.user._id,
+      })
+    : false;
+
+  const isSubscribed = req.user?._id
+    ? await Subscription.exists({
+        channel: video.owner._id,
+        subscriber: req.user._id,
+      })
+    : false;
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        _id: video._id,
+        title: video.title,
+        description: video.description,
+        thumbnail: video.thumbnail,
+        videoFile: video.videoFile,
+        duration: video.duration,
+        views: video.views,
+        createdAt: video.createdAt,
+
+        likesCount,
+        isLiked,
+
+        owner: {
+          _id: video.owner._id,
+          username: video.owner.username,
+          avatar: video.owner.avatar,
+          fullName: video.owner.fullName,
+          isSubscribed,
+        },
+      },
+      "Video fetched successfully"
     )
-})
+  );
+});
+
+
 
 // const updateData = asyncHandler(async (req, res) => {
 
@@ -497,11 +686,15 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
 
     // 4️⃣ Update video
-    const updatedVideo = await Video.findByIdAndUpdate(
-        videoId,
-        { $set: updateData },
-        { new: true, runValidators: true }
-    );
+const updatedVideo = await Video.findOneAndUpdate(
+  { _id: videoId, owner: req.user._id },
+  { $set: updateData },
+  { new: true, runValidators: true }
+);
+
+if (!updatedVideo) {
+  throw new ApiError(403, "You are not allowed to update this video");
+}
 
     // 5️⃣ Handle not found
     if (!updatedVideo) {

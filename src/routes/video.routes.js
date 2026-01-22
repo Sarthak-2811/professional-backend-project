@@ -16,19 +16,21 @@ const router = Router();
 
 /* ================= PUBLIC ROUTES ================= */
 
-// Home page videos
+// Home page
 router.get("/", getAllVideos);
 
-// Watch page video
-router.get("/:videoId", getVideoById);
+// 🔥 MUST be above :videoId
+router.get("/user/videos", verifyJWT, getAllUserVideos);
+
+// Watch page (PUBLIC)
+router.get("/:videoId", verifyJWT, getVideoById);
 
 /* ================= PROTECTED ROUTES ================= */
 
-router.use(verifyJWT);
-
-// Upload video
+// Upload
 router.post(
   "/",
+  verifyJWT,
   upload.fields([
     { name: "videoFile", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 }
@@ -36,16 +38,68 @@ router.post(
   publishVideo
 );
 
-// Logged-in user's videos
-router.get("/user/videos", getAllUserVideos);
-
-// Update / delete video
+// Update / delete
 router
   .route("/:videoId")
-  .delete(deleteVideo)
-  .patch(upload.single("thumbnail"), updateVideo);
+  .patch(verifyJWT, upload.single("thumbnail"), updateVideo)
+  .delete(verifyJWT, deleteVideo);
 
-// Publish / unpublish
-router.patch("/toggle/publish/:videoId", togglePublishStatus);
+// Publish toggle
+router.patch("/toggle/publish/:videoId", verifyJWT, togglePublishStatus);
 
 export default router;
+
+
+
+
+// import { Router } from "express";
+// import { verifyJWT } from "../middlewares/auth.middleware.js";
+// import { upload } from "../middlewares/multer.middleware.js";
+
+// import {
+//   getAllVideos,
+//   getAllUserVideos,
+//   publishVideo,
+//   getVideoById,
+//   updateVideo,
+//   deleteVideo,
+//   togglePublishStatus
+// } from "../controllers/video.controller.js";
+
+// const router = Router();
+
+// /* ================= PUBLIC ROUTES ================= */
+
+// // Home page videos
+// router.get("/", getAllVideos);
+
+// // Watch page video
+// router.get("/:videoId", getVideoById);
+
+// /* ================= PROTECTED ROUTES ================= */
+
+// router.use(verifyJWT);
+
+// // Upload video
+// router.post(
+//   "/",
+//   upload.fields([
+//     { name: "videoFile", maxCount: 1 },
+//     { name: "thumbnail", maxCount: 1 }
+//   ]),
+//   publishVideo
+// );
+
+// // Logged-in user's videos
+// router.get("/user/videos", getAllUserVideos);
+
+// // Update / delete video
+// router
+//   .route("/:videoId")
+//   .delete(deleteVideo)
+//   .patch(upload.single("thumbnail"), updateVideo);
+
+// // Publish / unpublish
+// router.patch("/toggle/publish/:videoId", togglePublishStatus);
+
+// export default router;
