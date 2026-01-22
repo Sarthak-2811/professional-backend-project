@@ -51,6 +51,39 @@ const createPlaylist = asyncHandler(async (req, res) =>{
 //         new ApiResponse(200, playlist, "User playlist fetched successfully")
 //     )
 // })
+// const getUserPlaylist = asyncHandler(async (req, res) => {
+//     const { userId } = req.params
+
+//     // Validate userId
+//     if (!isValidObjectId(userId)) {
+//         throw new ApiError(400, "Invalid user access")
+//     }
+
+//     // Ownership / self-access check
+//     if (req.user._id.toString() !== userId) {
+//         throw new ApiError(403, "You are not authorized to access these playlists")
+//     }
+
+//     const playlists = await PlayList.find({ owner: userId })
+//         .populate({
+//             path: "videos",
+//             select: "thumbnail title duration"
+//         })
+
+//     // find() returns an array — check length, not null
+//     if (!playlists.length) {
+//         throw new ApiError(404, "No playlists found for this user")
+//     }
+
+//     return res.status(200).json(
+//         new ApiResponse(
+//             200,
+//             playlists,
+//             "User playlists fetched successfully"
+//         )
+//     )
+// })
+
 const getUserPlaylist = asyncHandler(async (req, res) => {
     const { userId } = req.params
 
@@ -70,19 +103,19 @@ const getUserPlaylist = asyncHandler(async (req, res) => {
             select: "thumbnail title duration"
         })
 
-    // find() returns an array — check length, not null
-    if (!playlists.length) {
-        throw new ApiError(404, "No playlists found for this user")
-    }
+    // ✅ IMPORTANT FIX:
+    // Do NOT throw error if playlists are empty
+    // Empty array is a valid response
 
     return res.status(200).json(
         new ApiResponse(
             200,
-            playlists,
+            playlists, // [] when no playlists
             "User playlists fetched successfully"
         )
     )
 })
+
 
 const getPlaylistById = asyncHandler(async (req, res)=> {
     const {playlistId} = req.params
