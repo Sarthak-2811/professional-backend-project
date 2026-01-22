@@ -1,4 +1,14 @@
-#Learning backend
+PORT=8000
+# CORS_ORIGIN=*
+CORS_ORIGIN=http://localhost:5173
 
-This is my first professional backend project using javascript
--[Model link] (https://app.eraser.io/workspace/YtPqZ...)
+ACCESS_TOKEN_SECRET=1234
+ACCESS_TOKEN_EXPIRY=1d
+REFRESH_TOKEN_SECRET=5678
+REFRESH_TOKEN_EXPIRY=10d
+
+MONGODB_URI=mongodb+srv://Sarthak:%40Sarthak2811@cluster0.ciniuff.mongodb.net/backendDB?retryWrites=true&w=majority&appName=Cluster0
+
+CLOUDINARY_CLOUD_NAME=dat4ltqzx
+CLOUDINARY_API_KEY=532697632176189
+CLOUDINARY_API_SECRET=c9k6tjG6vqF0duuW2OEdcEWI0zw
