@@ -1,3 +1,244 @@
+// import mongoose, { isValidObjectId } from "mongoose";
+// import { asyncHandler } from "../utils/asyncHandler.js";
+// import { ApiError } from "../utils/ApiError.js";
+// import { ApiResponse } from "../utils/ApiResponse.js";
+// import { Tweet } from "../models/tweet.model.js";
+
+// /* ================= CREATE TWEET ================= */
+// const createTweet = asyncHandler(async (req, res) => {
+//   const { content } = req.body;
+
+//   if (!content?.trim()) {
+//     throw new ApiError(400, "Content is required");
+//   }
+
+//   const tweet = await Tweet.create({
+//     content,
+//     owner: req.user._id,
+//   });
+
+//   return res.status(201).json(
+//     new ApiResponse(201, tweet, "Tweet created successfully")
+//   );
+// });
+
+// /* ================= GET ALL TWEETS (🔥 FIX) ================= */
+// // const getAllTweets = asyncHandler(async (req, res) => {
+// //   const tweets = await Tweet.find()
+// //     .sort({ createdAt: -1 }) // latest first
+// //     .populate("owner", "username avatar fullName");
+
+// //   return res.status(200).json(
+// //     new ApiResponse(200, tweets, "All tweets fetched successfully")
+// //   );
+// // });
+
+// // const getAllTweets = asyncHandler(async (req, res) => {
+// //   // ✅ SAFE: user may or may not be logged in
+// //   const userId = req.user?._id
+// //     ? new mongoose.Types.ObjectId(req.user._id)
+// //     : null;
+
+// //   const tweets = await Tweet.aggregate([
+// //     { $sort: { createdAt: -1 } },
+
+// //     {
+// //       $lookup: {
+// //         from: "users",
+// //         localField: "owner",
+// //         foreignField: "_id",
+// //         as: "owner"
+// //       }
+// //     },
+// //     { $unwind: "$owner" },
+
+// //     {
+// //       $lookup: {
+// //         from: "likes",
+// //         let: { tweetId: "$_id" },
+// //         pipeline: [
+// //           {
+// //             $match: {
+// //               $expr: {
+// //                 $eq: ["$tweet", "$$tweetId"]
+// //               }
+// //             }
+// //           }
+// //         ],
+// //         as: "likes"
+// //       }
+// //     },
+
+// //     {
+// //       $addFields: {
+// //         likesCount: { $size: "$likes" },
+
+// //         // ✅ SAFE isLiked check
+// //         isLiked: userId
+// //           ? { $in: [userId, "$likes.likedBy"] }
+// //           : false
+// //       }
+// //     },
+
+// //     {
+// //       $project: {
+// //         content: 1,
+// //         createdAt: 1,
+// //         likesCount: 1,
+// //         isLiked: 1,
+// //         owner: {
+// //           _id: "$owner._id",
+// //           username: "$owner.username",
+// //           avatar: "$owner.avatar",
+// //           fullName: "$owner.fullName"
+// //         }
+// //       }
+// //     }
+// //   ]);
+
+// //   return res.status(200).json(
+// //     new ApiResponse(200, tweets, "All tweets fetched successfully")
+// //   );
+// // });
+
+// const getAllTweets = asyncHandler(async (req, res) => {
+//   // ✅ SAFE: user may or may not be logged in
+//   const userId = req.user?._id
+//     ? new mongoose.Types.ObjectId(req.user._id)
+//     : null;
+
+//   const tweets = await Tweet.aggregate([
+//     { $sort: { createdAt: -1 } },
+
+//     {
+//       $lookup: {
+//         from: "users",
+//         localField: "owner",
+//         foreignField: "_id",
+//         as: "owner"
+//       }
+//     },
+//     { $unwind: "$owner" },
+
+//     {
+//       $lookup: {
+//         from: "likes",
+//         let: { tweetId: "$_id" },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $eq: ["$tweet", "$$tweetId"]
+//               }
+//             }
+//           }
+//         ],
+//         as: "likes"
+//       }
+//     },
+
+//     {
+//       $addFields: {
+//         likesCount: { $size: "$likes" },
+//         isLiked: userId
+//           ? { $in: [userId, "$likes.likedBy"] }
+//           : false
+//       }
+//     },
+
+//     {
+//       $project: {
+//         content: 1,
+//         createdAt: 1,
+//         likesCount: 1,
+//         isLiked: 1,
+//         owner: {
+//           _id: "$owner._id",
+//           username: "$owner.username",
+//           avatar: "$owner.avatar",
+//           fullName: "$owner.fullName"
+//         }
+//       }
+//     }
+//   ]);
+
+//   return res.status(200).json(
+//     new ApiResponse(200, tweets, "All tweets fetched successfully")
+//   );
+// });
+
+// /* ================= GET USER TWEETS ================= */
+// const getUserTweet = asyncHandler(async (req, res) => {
+//   const { userId } = req.params;
+
+//   if (!isValidObjectId(userId)) {
+//     throw new ApiError(400, "Invalid user id");
+//   }
+
+//   const tweets = await Tweet.find({ owner: userId })
+//     .sort({ createdAt: -1 })
+//     .populate("owner", "username avatar fullName");
+
+//   return res.status(200).json(
+//     new ApiResponse(200, tweets, "User tweets fetched successfully")
+//   );
+// });
+
+// /* ================= UPDATE TWEET ================= */
+// const updateTweet = asyncHandler(async (req, res) => {
+//   const { tweetId } = req.params;
+//   const { content } = req.body;
+
+//   if (!content?.trim()) {
+//     throw new ApiError(400, "Content is required");
+//   }
+
+//   const tweet = await Tweet.findOneAndUpdate(
+//     { _id: tweetId, owner: req.user._id },
+//     { content },
+//     { new: true }
+//   );
+
+//   if (!tweet) {
+//     throw new ApiError(404, "Tweet not found or unauthorized");
+//   }
+
+//   return res.status(200).json(
+//     new ApiResponse(200, tweet, "Tweet updated successfully")
+//   );
+// });
+
+// /* ================= DELETE TWEET ================= */
+// const deleteTweet = asyncHandler(async (req, res) => {
+//   const { tweetId } = req.params;
+
+//   const tweet = await Tweet.findOneAndDelete({
+//     _id: tweetId,
+//     owner: req.user._id,
+//   });
+
+//   if (!tweet) {
+//     throw new ApiError(404, "Tweet not found or unauthorized");
+//   }
+
+//   return res.status(200).json(
+//     new ApiResponse(200, tweet, "Tweet deleted successfully")
+//   );
+// });
+
+// export {
+//   createTweet,
+//   getAllTweets,     // 🔥 EXPORT
+//   getUserTweet,
+//   updateTweet,
+//   deleteTweet,
+// };
+
+
+
+
+
+
 import mongoose, { isValidObjectId } from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -17,23 +258,139 @@ const createTweet = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
-  return res.status(201).json(
-    new ApiResponse(201, tweet, "Tweet created successfully")
-  );
+  return res
+    .status(201)
+    .json(new ApiResponse(201, tweet, "Tweet created successfully"));
 });
 
-/* ================= GET ALL TWEETS (🔥 FIX) ================= */
+/* ================= GET ALL TWEETS ================= */
+// const getAllTweets = asyncHandler(async (req, res) => {
+//   const userId = req.user?._id
+//     ? new mongoose.Types.ObjectId(req.user._id)
+//     : null;
+
+//   const tweets = await Tweet.aggregate([
+//     { $sort: { createdAt: -1 } },
+
+//     {
+//       $lookup: {
+//         from: "users",
+//         localField: "owner",
+//         foreignField: "_id",
+//         as: "owner",
+//       },
+//     },
+//     { $unwind: "$owner" },
+
+//     {
+//       $lookup: {
+//         from: "likes",
+//         let: { tweetId: "$_id" },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: { $eq: ["$tweet", "$$tweetId"] },
+//             },
+//           },
+//         ],
+//         as: "likes",
+//       },
+//     },
+
+//     {
+//       $addFields: {
+//         likesCount: { $size: "$likes" },
+//         isLiked: userId
+//           ? { $in: [userId, "$likes.likedBy"] }
+//           : false,
+//       },
+//     },
+
+//     {
+//       $project: {
+//         content: 1,
+//         createdAt: 1,
+//         likesCount: 1,
+//         isLiked: 1,
+//         owner: {
+//           _id: "$owner._id",
+//           username: "$owner.username",
+//           avatar: "$owner.avatar",
+//           fullName: "$owner.fullName",
+//         },
+//       },
+//     },
+//   ]);
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, tweets, "All tweets fetched successfully"));
+// });
+
 const getAllTweets = asyncHandler(async (req, res) => {
-  const tweets = await Tweet.find()
-    .sort({ createdAt: -1 }) // latest first
-    .populate("owner", "username avatar fullName");
+  const userId = req.user?._id
+    ? new mongoose.Types.ObjectId(req.user._id)
+    : null;
 
-  return res.status(200).json(
-    new ApiResponse(200, tweets, "All tweets fetched successfully")
-  );
+  const tweets = await Tweet.aggregate([
+    { $sort: { createdAt: -1 } },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+
+    {
+      $lookup: {
+        from: "likes",
+        let: { tweetId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$tweet", "$$tweetId"] },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+
+    {
+      $addFields: {
+        likesCount: { $size: "$likes" },
+        isLiked: userId
+          ? { $in: [userId, "$likes.likedBy"] }
+          : false,
+      },
+    },
+
+    {
+      $project: {
+        content: 1,
+        createdAt: 1,
+        likesCount: 1,
+        isLiked: 1,
+        owner: {
+          _id: "$owner._id",
+          username: "$owner.username",
+          avatar: "$owner.avatar",
+          fullName: "$owner.fullName",
+        },
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweets, "All tweets fetched successfully"));
 });
 
-/* ================= GET USER TWEETS ================= */
+/* ================= GET USER TWEETS (🔥 FIXED) ================= */
 const getUserTweet = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
@@ -41,13 +398,72 @@ const getUserTweet = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user id");
   }
 
-  const tweets = await Tweet.find({ owner: userId })
-    .sort({ createdAt: -1 })
-    .populate("owner", "username avatar fullName");
+  const loggedInUserId = req.user?._id
+    ? new mongoose.Types.ObjectId(req.user._id)
+    : null;
 
-  return res.status(200).json(
-    new ApiResponse(200, tweets, "User tweets fetched successfully")
-  );
+  const tweets = await Tweet.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId),
+      },
+    },
+
+    { $sort: { createdAt: -1 } },
+
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+
+    {
+      $lookup: {
+        from: "likes",
+        let: { tweetId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$tweet", "$$tweetId"] },
+            },
+          },
+        ],
+        as: "likes",
+      },
+    },
+
+    {
+      $addFields: {
+        likesCount: { $size: "$likes" },
+        isLiked: loggedInUserId
+          ? { $in: [loggedInUserId, "$likes.likedBy"] }
+          : false,
+      },
+    },
+
+    {
+      $project: {
+        content: 1,
+        createdAt: 1,
+        likesCount: 1,
+        isLiked: 1,
+        owner: {
+          _id: "$owner._id",
+          username: "$owner.username",
+          avatar: "$owner.avatar",
+          fullName: "$owner.fullName",
+        },
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweets, "User tweets fetched successfully"));
 });
 
 /* ================= UPDATE TWEET ================= */
@@ -69,9 +485,9 @@ const updateTweet = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Tweet not found or unauthorized");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, tweet, "Tweet updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweet, "Tweet updated successfully"));
 });
 
 /* ================= DELETE TWEET ================= */
@@ -87,220 +503,15 @@ const deleteTweet = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Tweet not found or unauthorized");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, tweet, "Tweet deleted successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweet, "Tweet deleted successfully"));
 });
 
 export {
   createTweet,
-  getAllTweets,     // 🔥 EXPORT
+  getAllTweets,
   getUserTweet,
   updateTweet,
   deleteTweet,
 };
-
-
-
-
-
-
-// import mongoose, { isValidObjectId } from "mongoose";
-// import { asyncHandler } from "../utils/asyncHandler.js";
-// import {ApiError} from "../utils/ApiError.js"
-// import { Tweet } from "../models/tweet.model.js";
-// import { ApiResponse } from "../utils/ApiResponse.js";
-// // import { use } from "react";
-
-
-// const createTweet = asyncHandler(async (req, res) => {
-//     // TODO: create tweet 
-//     /*
-//     1. getting the content from the req.body
-//     2. Check the availability of the content
-//     3. using the user from the req.user and then save it to the tweet db schema
-//     4. sending the response
-//     */ 
-
-//     const { content } = req.body
-
-//     if(!content){
-//         throw new ApiError(400, "Content is required")
-//     }
-
-//     const tweet = await Tweet.create({
-//         content,
-//         owner: req.user._id
-//     })
-
-//     if(!tweet){
-//         throw new ApiError(400, "Tweet creation failed")
-//     }
-
-//     return res
-//     .status(201)
-//     .json(new ApiResponse(200, tweet, "Tweet created successfully"))
-// })
-
-// // const getUserTweet = asyncHandler(async (req, res) => {
-// //     const {userId} = req.params
-
-// //     if(!isValidObjectId(userId)){
-// //         throw new ApiError(400, "Invalid user access")
-// //     }
-
-// //     const tweet = await Tweet.aggregate([
-// //         {
-// //             $match: {
-// //                 owner: new mongoose.Types.ObjectId(userId)
-// //             }
-// //         },
-// //         {
-// //             $lookup:  {
-// //                 from: "users",
-// //                 localField: "owner",
-// //                 foreignField: "_id",
-// //                 as: "ownerDetails"
-// //             }
-// //         },
-// //         {
-// //             $unwind: "$ownerDetails"
-// //         },
-// //         {
-// //             $project: {
-// //                 _id: 1,
-// //                 content: 1,
-// //                 createdAt: 1,
-// //                 username: "$ownerDetails.username",
-// //                 avatar: "$ownerDetails.avatar"
-// //             }
-// //         }
-// //     ])
-
-// //     return res
-// //     .status(200)
-// //     .json(
-// //         new ApiResponse(200, tweet, "User tweet fetched successfully")
-// //     )
-// // })
-
-// const getUserTweet = asyncHandler(async (req,res)=> {
-//     // TODO: get user tweet
-
-//     const {userId} = req.params
-
-//     if(!isValidObjectId(userId)){
-//         throw new ApiError(400, "Invalid User Id")
-//     }
-
-//     const tweet = await Tweet.find({ owner: userId })
-//   .populate("owner", "fullName username avatar")
-//   .sort({ createdAt: -1 });
-
-//     if(!tweet){
-//         throw new ApiError(404, "Tweets not found")
-//     }
-
-//     return res
-//     .status(200)
-//     .json(
-//         new ApiResponse(200, tweet, "User tweet fetched")
-//     )
-// })
-
-// const updateTweet = asyncHandler(async (req, res) => {
-//     // TODO: update tweet 
-
-//     const { tweetId } = req.params
-//     const { newContent } = req.body
-
-//     if(!newContent){
-//         throw new ApiError(400, "Invalid Content")
-//     }
-
-//     const tweet = await Tweet.findByIdAndUpdate(tweetId, 
-//         {
-//             $set: {
-//                 content: newContent
-//             }
-//         },
-//         {
-//             new: true
-//         }
-//     )
-
-//     return res
-//     .status(200)
-//     .json(
-//         new ApiResponse(200, tweet, "Updated tweet successfully")
-//     )
-// })
-
-// const deleteTweet = asyncHandler(async (req, res) => {
-//     //TODO: delete tweet
-
-//     const {tweetId} = req.params
-
-//     if(!isValidObjectId(tweetId)){
-//         throw new ApiError(400, "Invalid tweet id")
-//     }
-
-//     const tweet = await Tweet.findOneAndDelete({
-//         _id: tweetId,
-//         owner: req.user._id
-//     })
-
-//     if(!tweet){
-//         throw new ApiError(404, "Tweet not found or unauthorized")
-//     }
-
-//     return res
-//     .status(200)
-//     .json(
-//         new ApiResponse(200, tweet, "Deleted tweet successfully")
-//     )
-// })
-
-// const getAllTweets = asyncHandler(async (req, res) => {
-//   const tweets = await Tweet.aggregate([
-//     { $sort: { createdAt: -1 } }, // latest first
-//     {
-//       $lookup: {
-//         from: "users",
-//         localField: "owner",
-//         foreignField: "_id",
-//         as: "owner",
-//         pipeline: [
-//           {
-//             $project: {
-//               username: 1,
-//               fullName: 1,
-//               avatar: 1
-//             }
-//           }
-//         ]
-//       }
-//     },
-//     {
-//       $addFields: {
-//         owner: { $first: "$owner" }
-//       }
-//     }
-//   ]);
-
-//   return res.status(200).json(
-//     new ApiResponse(200, tweets, "All tweets fetched successfully")
-//   );
-// });
-
-// export {
-//   getAllTweets
-// };
-
-
-// export {
-//     createTweet,
-//     getUserTweet,
-//     updateTweet,
-//     deleteTweet
-// }

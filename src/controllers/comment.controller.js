@@ -19,31 +19,61 @@ const getVideoComment = asyncHandler(async (req, res) => {
     }
 
     const myAggregateComment = Comment.aggregate([
-        {
-            $match: {
-                video: new mongoose.Types.ObjectId(videoId)
-            }
-        },
-        {
-            $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "commentor"
-            }
-        },
-        { $unwind: "$commentor" },
-        {
-            $project: {
-                _id: 1,
-                content: 1,
-                createdAt: 1,
-                "commentor._id": 1,
-                "commentor.username": 1,
-                "commentor.avatar": 1,
-                "commentor.fullName": 1
-            }
+    {
+        $match: {
+        video: new mongoose.Types.ObjectId(videoId)
         }
+    },
+    {
+        $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "commentor"
+        }
+    },
+    { $unwind: "$commentor" },
+
+    // 🔥 ADD LIKE LOOKUP
+    {
+        $lookup: {
+        from: "likes",
+        let: { commentId: "$_id" },
+        pipeline: [
+            {
+            $match: {
+                $expr: {
+                $eq: ["$comment", "$$commentId"]
+                }
+            }
+            }
+        ],
+        as: "likes"
+        }
+    },
+
+    {
+        $addFields: {
+        likesCount: { $size: "$likes" },
+        isLiked: {
+            $in: [req.user._id, "$likes.likedBy"]
+        }
+        }
+    },
+
+    {
+        $project: {
+        _id: 1,
+        content: 1,
+        createdAt: 1,
+        likesCount: 1,
+        isLiked: 1,
+        "commentor._id": 1,
+        "commentor.username": 1,
+        "commentor.avatar": 1,
+        "commentor.fullName": 1
+        }
+    }
     ])
 
     Comment.aggregatePaginate(myAggregateComment, options, (err, result) => {

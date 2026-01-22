@@ -10,23 +10,20 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-/* ================= PUBLIC ================= */
-router.get("/", getAllTweets); // 🔥 THIS FIXES 404
+/* ================= AUTH-AWARE FEED ================= */
+// ✅ MUST be protected because isLiked depends on req.user
+router.get("/", verifyJWT, getAllTweets);
 
 /* ================= PROTECTED ================= */
-router.use(verifyJWT);
-
-router.post("/", createTweet);
-router.get("/user/:userId", getUserTweet);
+router.post("/", verifyJWT, createTweet);
+router.get("/user/:userId", verifyJWT, getUserTweet);
 
 router
   .route("/:tweetId")
-  .patch(updateTweet)
-  .delete(deleteTweet);
+  .patch(verifyJWT, updateTweet)
+  .delete(verifyJWT, deleteTweet);
 
 export default router;
-
-
 
 
 
