@@ -31,11 +31,22 @@ const app = express()
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://xtube-frontend.vercel.app",
-      "https://xtube-frontend-3niutpkqf-sarthak-savanis-projects.vercel.app"
-    ],
+    origin: (origin, callback) => {
+      // allow server-to-server & Postman
+      if (!origin) return callback(null, true);
+
+      // allow localhost for dev
+      if (origin.startsWith("http://localhost")) {
+        return callback(null, true);
+      }
+
+      // allow ALL vercel frontend deployments
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
