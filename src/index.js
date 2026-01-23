@@ -1,25 +1,43 @@
-// require('dotenv').config({path: './env'})
+import dotenv from "dotenv";
+import connectDB from "./db/index.js";
+import { app } from "./app.js";
 
-import dotenv from 'dotenv'
-import mongoose from 'mongoose'
-import {DB_NAME} from "./constants.js"
-import { app } from './app.js'
+dotenv.config({ path: "./.env" });
 
-import connectDB from './db/index.js'
+// ⛔ DO NOT listen on a port
+// ✅ Just connect DB once
+await connectDB();
 
-dotenv.config({
-    path: './.env'
-})
+// ✅ Export app for Vercel
+export default app;
 
-connectDB()
-.then(() =>{
-    app.listen(process.env.PORT || 8000, ()=>{
-        console.log(`Server is running at Port : ${process.env.PORT}`);
-    })
-})
-.catch((error)=>{
-    console.log("MONGO DB connection failed !!! ", error);
-})
+
+
+
+
+
+// // require('dotenv').config({path: './env'})
+
+// import dotenv from 'dotenv'
+// import mongoose from 'mongoose'
+// import {DB_NAME} from "./constants.js"
+// import { app } from './app.js'
+
+// import connectDB from './db/index.js'
+
+// dotenv.config({
+//     path: './.env'
+// })
+
+// connectDB()
+// .then(() =>{
+//     app.listen(process.env.PORT || 8000, ()=>{
+//         console.log(`Server is running at Port : ${process.env.PORT}`);
+//     })
+// })
+// .catch((error)=>{
+//     console.log("MONGO DB connection failed !!! ", error);
+// })
 
 
 
