@@ -178,6 +178,7 @@ const options = {
   secure: true,        // REQUIRED for HTTPS
   sameSite: "none",    // 🔥 REQUIRED for cross-domain
   path: "/",
+  domain: ".onrender.com",
 };
 
     return res
@@ -217,6 +218,7 @@ const options = {
   secure: true,        // REQUIRED for HTTPS
   sameSite: "none",    // 🔥 REQUIRED for cross-domain
   path: "/",
+  domain: ".onrender.com",
 };
 
     return res
@@ -314,6 +316,7 @@ const options = {
   secure: true,        // REQUIRED for HTTPS
   sameSite: "none",    // 🔥 REQUIRED for cross-domain
   path: "/",
+  domain: ".onrender.com",
 };
 
         return res
