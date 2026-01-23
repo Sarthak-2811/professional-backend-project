@@ -175,9 +175,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const options = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",               // 🔥 THIS IS REQUIRED
+  secure: true,        // REQUIRED for HTTPS
+  sameSite: "none",    // 🔥 REQUIRED for cross-domain
+  path: "/",
 };
 
     return res
@@ -214,9 +214,9 @@ const logoutUser = asyncHandler(async(req, res) => {
     // }  
 const options = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",               // 🔥 THIS IS REQUIRED
+  secure: true,        // REQUIRED for HTTPS
+  sameSite: "none",    // 🔥 REQUIRED for cross-domain
+  path: "/",
 };
 
     return res
@@ -311,9 +311,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         // }
 const options = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",               // 🔥 THIS IS REQUIRED
+  secure: true,        // REQUIRED for HTTPS
+  sameSite: "none",    // 🔥 REQUIRED for cross-domain
+  path: "/",
 };
 
         return res
