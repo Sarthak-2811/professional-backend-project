@@ -7,25 +7,48 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// const uploadOnCloudinary = async (localFilePath) => {
+//     try {
+//         if (!localFilePath) return null;
+
+//         const response = await cloudinary.uploader.upload(localFilePath, {
+//             resource_type: "auto"
+//         });
+
+//         // ✅ SAFE async cleanup
+//         await fs.unlink(localFilePath).catch(() => {});
+
+//         return response;
+//     } catch (error) {
+//         // ✅ Cleanup even if upload fails
+//         if (localFilePath) {
+//             await fs.unlink(localFilePath).catch(() => {});
+//         }
+//         return null;
+//     }
+// };
+
 const uploadOnCloudinary = async (localFilePath) => {
-    try {
-        if (!localFilePath) return null;
+  try {
+    if (!localFilePath) return null;
 
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto"
-        });
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+      secure: true, // 👈 explicit (optional but good)
+    });
 
-        // ✅ SAFE async cleanup
-        await fs.unlink(localFilePath).catch(() => {});
+    await fs.unlink(localFilePath).catch(() => {});
 
-        return response;
-    } catch (error) {
-        // ✅ Cleanup even if upload fails
-        if (localFilePath) {
-            await fs.unlink(localFilePath).catch(() => {});
-        }
-        return null;
+    return {
+      ...response,
+      url: response.secure_url, // 👈 FORCE HTTPS
+    };
+  } catch (error) {
+    if (localFilePath) {
+      await fs.unlink(localFilePath).catch(() => {});
     }
+    return null;
+  }
 };
 
 export { uploadOnCloudinary };
